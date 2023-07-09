@@ -183,13 +183,9 @@ export interface AddProduct {
 
 export interface WTOrder {
   wautop: string;
-  wcodep: string;
-  refererWTF: string;
-  refWTF: string;
-  wtoken: string;
   method_pay: string;
   device: string;
   form: string;
-  lform: string;
+  lform: boolean;
   uform: string | null;
 }

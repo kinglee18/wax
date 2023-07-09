@@ -6,10 +6,10 @@ interface FormResponse {
   }
   
   const wtfApi = "https://api.whataform.com";
-  const wsecret = "f1fb6955b810ba64ce5e1a979!.21e98b0d79c73beb6135a919b146847f0843892f;"
-  export async function fetchFields(): Promise<FormResponse> {
+  const wsecret = "f1fb6955b810ba64ce5e1a979!.21e98b0d79c73beb6135a919b146847f0843892f"
+
+  export async function fetchFields(code: string): Promise<FormResponse> {
     const key = 'wtfm-8705207c72!.d02a4ca0633d26ba290de204de1fa970f6a821f7';
-    const code = 'b10fc38d1a59d9';
     const response = await fetch(`${wtfApi}/v1/form?key=${key}&code=${code}`, {
         headers: {
             wsecret
@@ -18,10 +18,10 @@ interface FormResponse {
     return await response.json();
   }
   
-  const formURL = "https://wax710novum.whataform.com/api/f/b10fc38d1a59d9";
+  const formURL = "https://wax710novum.whataform.com/api/f/";
 
-  export async function postData(payload: AddProduct): Promise<FormResponse> {
-    const response = await fetch(formURL + "/add-product", {
+  export async function addProduct(payload: AddProduct, code: string): Promise<FormResponse> {
+    const response = await fetch(formURL + code + "/add-product", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -32,8 +32,8 @@ interface FormResponse {
   }
   
 
-export async function postForm(payload: WTOrder): Promise<FormResponse> {
-    const response = await fetch(formURL + "/sendorder", {
+export async function postForm(payload: WTOrder, code: string): Promise<FormResponse> {
+    const response = await fetch(formURL + code + "/sendorder", {
       method: "POST",
       headers: {
         "Content-Type": "multipart/form-data; boundary=----WebKitFormBoundarycTBJA37JCWjIQFkV",
@@ -47,3 +47,8 @@ export async function postForm(payload: WTOrder): Promise<FormResponse> {
   
     return response.json();
   }
+
+export const getWTForm = () => {
+    const response = fetch('https://wax710novum.whataform.com/express');
+    return response;
+}
