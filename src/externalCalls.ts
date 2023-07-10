@@ -48,7 +48,7 @@ export async function postForm(payload: WTOrder, code: string): Promise<FormResp
     return response.json();
   }
 
-export const getWTForm = () => {
-    const response = fetch('https://wax710novum.whataform.com/express');
+export const getWTForm = async() => {
+    const response = await fetch('https://wax710novum.whataform.com/express');
     return response;
 }

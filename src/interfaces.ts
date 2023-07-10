@@ -189,3 +189,16 @@ export interface WTOrder {
   lform: boolean;
   uform: string | null;
 }
+
+export interface FormField {
+  code_input: string;
+  type: string;
+  title: string;
+  description: string | null;
+  tag: string | null;
+  required: number;
+  unique: number;
+  visible: number;
+  updated_at: string;
+  created_at: string;
+}

@@ -1,5 +1,5 @@
 import { addProduct, fetchFields, getWTForm, postForm } from "./externalCalls";
-import { AddProduct, WTOrder, WoocommerceOrder, kvProduct } from "./interfaces";
+import { AddProduct, FormField, WTOrder, WoocommerceOrder, kvProduct } from "./interfaces";
 import { generateToken } from "./utils";
 
 
@@ -7,19 +7,38 @@ export interface Env {
 	PEDIDOS: any,
 	PRODUCTS: any
 }
-const formFields = ["Menú", "Nombre completo", "Código Postal", "Calle y número (exterior e interior)", "Colonia", "Municipio", "Estado", "WhatsApp", "Correo", "Observaciones", "Costo de envío"];
+interface elems {
+	title: string, 
+	jsonField: string, 
+	section: string
+};
+
+const formFields: elems[] = [
+	{title: "Nombre completo", jsonField: '', section : 'shippment'},
+	{title: "Código Postal", jsonField: '', section : 'shippment'},
+	{title: "Calle y número (exterior e interior)", jsonField: '', section : 'shippment'},
+	{title: "Colonia", jsonField: '', section : 'shippment'},
+	{title: "Municipio", jsonField: '', section : 'shippment'},
+	{title: "Estado", jsonField: '', section : 'shippment'},
+	{title: "WhatsApp", jsonField: '', section : 'shippment'},
+	{title: "Correo", jsonField: '', section : 'shippment'},
+	{title: "Observaciones", jsonField: '', section : 'shippment'},
+	{title: "Costo de envío", jsonField: '', section : 'shippment'}
+];
 
 export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
 		const wtForm = await getWTForm();
-		const pToken = await getwToken(await wtForm);
+		const pToken = await getwToken(await wtForm) || '';
 		const code = 'b10fc38d1a59d9';
 		const device = getToken(code);
 		if (request.method === "POST") {
 			const reqBody = await request.json() as WoocommerceOrder;
 			await env.PEDIDOS.put(new Date().toISOString(), JSON.stringify(await request.json()));
 
-			const fields = await fetchFields(code);
+			const wtFieldsResponse = await fetchFields(code);
+			const fields = wtFieldsResponse.data.response.inputs.reduce((prev: Record<string, { val: any }>, val: FormField) => mapFormFields(prev, val, formFields, reqBody), {})
+
 			let products = await env.PRODUCTS.list().map((product: kvProduct) => (mapProducts(product, env)));
 
 			const productsInOrder = reqBody['line_items'].map((item) => {
@@ -86,18 +105,21 @@ const formPayload = (device: string, code: string, wtoken: string) => {
 };
 
 
-async function getwToken(response: Response): Promise<string> {
-	let wtokenValue = '';
-	new HTMLRewriter().on('input#wtoken', {
-	  element(element) {
-		const value = element.getAttribute('value')
-		if (value) {
-		  wtokenValue = value; 
-		  console.log('wtoken value:', wtokenValue)
-		}
-	  },
-	}).transform(response)
+async function getwToken(response: Response){
+	let val;
+	const rewriter = new HTMLRewriter()
+	.on("input#wtoken", {
+	  element(el) { 
+		val =  el.getAttribute('value')
+	  }
   
-	return wtokenValue
+	});
+	await rewriter.transform(response).text();
+	return val
   }
   
+const mapFormFields = (obj: Record<string, { val: string }>, wfield: FormField, formFields: elems[], reqBody: WoocommerceOrder)  => {
+	const bodyField = formFields.find(_field => _field.title === wfield.title)
+	obj[wfield.code_input] ={val: reqBody[bodyField?.section][bodyField.jsonField] };
+	return obj;
+}
